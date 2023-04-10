@@ -18,3 +18,4 @@ Zaraz MC worker template provides a template for deploying Custom MC workers. Cu
 - Copy your MC files to `./src`(it's recommended to create a new folder within `./src` if you're not using an already bundled MC)
 - Import your component in index.ts by replacing this line `import component from './component.js'` with your import
 - Edit `wrangler.toml` if you need to change the worker name or if you're using a more complex worker configuration for your MC
+- Run `wrangler publish`
