@@ -116,8 +116,7 @@ function replaceWorkerName(workerName) {
             alias: 'c',
             type: 'string',
             demandOption: true,
-            describe:
-              "path to your own wrangler toml config(if it's not a simple straight forward one)",
+            describe: 'path to your compiled component js file',
           })
       },
       async function (argv) {
