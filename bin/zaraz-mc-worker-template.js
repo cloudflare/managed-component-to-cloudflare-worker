@@ -67,7 +67,7 @@ function onFatalError(error) {
 
   console.error(`
   Oops! Something went wrong! :(
-  Webcm: ${version}
+  version: ${version}
   ${message}`)
 }
 
