@@ -167,6 +167,9 @@ function replaceWorkerName(workerName) {
             'published succesfully'
           )
           console.log(resultData.stdout)
+          console.log(
+            '\n🚀 Head to your Cloudflare Zaraz Dashboard to configure this Managed Component as a new tool. https://dash.cloudflare.com/?to=/:account/:zone/zaraz/tools-config/tools/catalog'
+          )
         } else {
           throw new Error(resultData.stderr)
         }
