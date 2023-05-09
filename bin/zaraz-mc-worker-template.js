@@ -78,7 +78,7 @@ function replaceWorkerName(workerName) {
   process.on('unhandledRejection', onFatalError)
 
   process.exitCode = await require('yargs')
-    .scriptName('managed-component-to-cloudflare-workers')
+    .scriptName('managed-component-to-cloudflare-worker')
     .usage('$0 [args]')
     .command(
       ['start', '$0'],
@@ -86,7 +86,7 @@ function replaceWorkerName(workerName) {
       yargs => {
         yargs
           .option('workerName', {
-            alias: 'n',
+            alias: 'w',
             type: 'string',
             demandOption: true,
             describe: 'Name of the Cloudflare Worker to be created',
