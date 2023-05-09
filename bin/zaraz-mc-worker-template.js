@@ -5,11 +5,12 @@
 const fs = require('fs')
 const util = require('node:util')
 const path = require('path')
+const crypto = require('crypto')
 const exec = util.promisify(require('node:child_process').exec)
 // const { exec } = require('node:child_process')
 
 const SRC_DIR = path.join(__dirname, '..')
-const TMP_DIR = '/tmp/mc-worker'
+const TMP_DIR = '/tmp/custom-mc-' + crypto.randomUUID()
 const WRANGLER_TOML_PATH = TMP_DIR + '/wrangler.toml'
 
 /**
