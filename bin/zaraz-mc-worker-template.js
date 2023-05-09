@@ -27,6 +27,13 @@ const rl = readline.createInterface({
   output: process.stdout,
 })
 const prompt = query => new Promise(resolve => rl.question(query, resolve))
+
+function exit(code) {
+  if (fs.existsSync(TMP_DIR)) {
+    fs.rmdirSync(TMP_DIR, { recursive: true })
+  }
+  process.exit(code)
+}
 /**
  * Get the error message of a given value.
  * @param {any} error The value to get.
@@ -106,7 +113,7 @@ function replaceWorkerName(workerName) {
   process.on('unhandledRejection', onFatalError)
 
   process.exitCode = await require('yargs')
-    .scriptName('zaraz-mc-worker-template')
+    .scriptName('managed-component-to-cloudflare-workers')
     .usage('$0 [args]')
     .command(
       ['start', '$0'],
@@ -116,14 +123,14 @@ function replaceWorkerName(workerName) {
           .option('workerName', {
             alias: 'n',
             type: 'string',
-            describe:
-              'the name of the deployed worker - it must start with `custom-mc-` to be recognized by Cloudflare dashboard as a valid Custom MC',
+            demandOption: true,
+            describe: 'Name of the Cloudflare Worker to be created',
           })
           .option('componentPath', {
             alias: 'c',
             type: 'string',
             demandOption: true,
-            describe: 'path to your compiled component js file',
+            describe: 'Path to your compiled Managed Component JavaScript file',
           })
       },
       async function (argv) {
@@ -141,13 +148,15 @@ function replaceWorkerName(workerName) {
           console.error(
             `Error: The provided component path (${argv.componentPath}) is not a JavaScript file`
           )
-          process.exit(1)
+          exit(1)
         }
 
         try {
-          console.log('Building Custom MC worker...')
+          process.stdout.write(
+            'Packing your Managed Component as a Cloudflare Worker...'
+          )
           fs.cpSync(SRC_DIR, TMP_DIR, { recursive: true, force: true })
-          console.log('Successfully built!')
+          console.log(' ✅')
         } catch (err) {
           fs.rmSync(TMP_DIR, { recursive: true, force: true })
           console.error(err)
@@ -164,14 +173,23 @@ function replaceWorkerName(workerName) {
         }
 
         // replace wrangler toml worker name
-        if (argv.workerName) {
-          replaceWorkerName(argv.workerName)
+        if (!argv.workerName.trim()) {
+          console.error(
+            `\nError: The provided Worker name (${argv.workerName}) is invalid`
+          )
+          exit(1)
         }
+        if (!argv.workerName.startsWith('custom-mc-')) {
+          argv.workerName = 'custom-mc-' + argv.workerName
+        }
+        replaceWorkerName(argv.workerName)
+
         const userInput = await prompt(
           `\nYour Cloudflare Worker will be named "${argv.workerName}".\nEnter "yes" to deploy with Wrangler: `
         )
 
         if (userInput !== 'yes') exit(0)
+
         console.log(
           'Deploying',
           argv.workerName ? argv.workerName : 'custom-mc-cf-zaraz',
