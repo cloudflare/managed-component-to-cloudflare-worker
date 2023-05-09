@@ -6,6 +6,7 @@ const fs = require('fs')
 const util = require('node:util')
 const path = require('path')
 const crypto = require('crypto')
+const readline = require('readline')
 const exec = util.promisify(require('node:child_process').exec)
 // const { exec } = require('node:child_process')
 
@@ -21,6 +22,11 @@ const WRANGLER_TOML_PATH = TMP_DIR + '/wrangler.toml'
 // Helpers
 //------------------------------------------------------------------------------
 
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+})
+const prompt = query => new Promise(resolve => rl.question(query, resolve))
 /**
  * Get the error message of a given value.
  * @param {any} error The value to get.
@@ -161,7 +167,11 @@ function replaceWorkerName(workerName) {
         if (argv.workerName) {
           replaceWorkerName(argv.workerName)
         }
+        const userInput = await prompt(
+          `\nYour Cloudflare Worker will be named "${argv.workerName}".\nEnter "yes" to deploy with Wrangler: `
+        )
 
+        if (userInput !== 'yes') exit(0)
         console.log(
           'Deploying',
           argv.workerName ? argv.workerName : 'custom-mc-cf-zaraz',
