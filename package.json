@@ -1,6 +1,6 @@
 {
   "name": "zaraz-mc-worker-template",
-  "version": "0.0.4",
+  "version": "1.0.0",
   "dependencies": {
     "yargs": "^17.5.1",
     "ts-node": "^10.8.1"
