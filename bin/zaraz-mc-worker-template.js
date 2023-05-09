@@ -104,7 +104,7 @@ function replaceWorkerName(workerName) {
     .command(
       ['start', '$0'],
       '(default) publish a custom MC for Cloudflare Zaraz with a given component name',
-      (yargs) => {
+      yargs => {
         yargs
           .option('workerName', {
             alias: 'n',
@@ -126,10 +126,21 @@ function replaceWorkerName(workerName) {
           dir: __dirname,
         })
 
+        if (
+          !fs.existsSync(argv.componentPath) ||
+          !fs.lstatSync(argv.componentPath).isFile() ||
+          !argv.componentPath.endsWith('.js')
+        ) {
+          console.error(
+            `Error: The provided component path (${argv.componentPath}) is not a JavaScript file`
+          )
+          process.exit(1)
+        }
+
         try {
           console.log('Building Custom MC worker...')
           fs.cpSync(SRC_DIR, TMP_DIR, { recursive: true, force: true })
-          console.log('Succesfully built!')
+          console.log('Successfully built!')
         } catch (err) {
           fs.rmSync(TMP_DIR, { recursive: true, force: true })
           console.error(err)
