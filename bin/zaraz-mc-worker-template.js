@@ -3,7 +3,6 @@
 /* eslint-disable no-console */
 
 const fs = require('fs')
-const util = require('node:util')
 const path = require('path')
 const crypto = require('crypto')
 const readline = require('readline')
@@ -34,39 +33,6 @@ function exit(code) {
   }
   process.exit(code)
 }
-/**
- * Get the error message of a given value.
- * @param {any} error The value to get.
- * @returns {string} The error message.
- */
-function getErrorMessage(error) {
-  // Lazy loading because this is used only if an error happened.
-  const util = require('util')
-
-  // Foolproof -- third-party module might throw non-object.
-  if (typeof error !== 'object' || error === null) {
-    return String(error)
-  }
-
-  // Use templates if `error.messageTemplate` is present.
-  if (typeof error.messageTemplate === 'string') {
-    try {
-      const template = require(`../messages/${error.messageTemplate}.js`)
-
-      return template(error.messageData || {})
-    } catch {
-      // Ignore template error then fallback to use `error.stack`.
-    }
-  }
-
-  // Use the stacktrace if it's an error object.
-  if (typeof error.stack === 'string') {
-    return error.stack
-  }
-
-  // Otherwise, dump the object.
-  return util.format('%o', error)
-}
 
 /**
  * Catch and report unexpected error.
@@ -77,12 +43,11 @@ function onFatalError(error) {
   process.exitCode = 2
 
   const { version } = require('../package.json')
-  const message = getErrorMessage(error)
 
   console.error(`
   Oops! Something went wrong! :(
   version: ${version}
-  ${message}`)
+  ${error}`)
 }
 
 /**
