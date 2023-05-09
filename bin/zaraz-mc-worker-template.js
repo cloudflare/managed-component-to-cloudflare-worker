@@ -197,7 +197,7 @@ function replaceWorkerName(workerName) {
         )
 
         const resultData = await exec(
-          `wrangler publish --config ${TMP_DIR + '/wrangler.toml'}`
+          `npx wrangler publish --config ${TMP_DIR + '/wrangler.toml'}`
         )
 
         if (!resultData.stderr) {
