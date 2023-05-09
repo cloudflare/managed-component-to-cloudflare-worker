@@ -6,7 +6,7 @@ const fs = require('fs')
 const path = require('path')
 const crypto = require('crypto')
 const readline = require('readline')
-const exec = util.promisify(require('node:child_process').exec)
+const { spawn } = require('child_process')
 // const { exec } = require('node:child_process')
 
 const SRC_DIR = path.join(__dirname, '..')
@@ -156,34 +156,30 @@ function replaceWorkerName(workerName) {
         if (userInput !== 'yes') exit(0)
 
         console.log(
-          'Deploying',
+          '\nDeploying',
           argv.workerName ? argv.workerName : 'custom-mc-cf-zaraz',
           'as Cloudflare Zaraz Custom MC...'
         )
 
-        const resultData = await exec(
-          `npx wrangler publish --config ${TMP_DIR + '/wrangler.toml'}`
+        const shell = spawn(
+          'npx',
+          ['wrangler', 'publish', '--config', TMP_DIR + '/wrangler.toml'],
+          { stdio: 'inherit' }
         )
+        shell.on('close', code => {
+          if (code === 0) {
+            console.log(
+              `\n🎉 Hooray!\nYour Managed Component was published as a Worker named "${argv.workerName}" successfully!`
+            )
+            console.log(
+              'You can configure it as tool using the Cloudflare Zaraz Dashboard at https://dash.cloudflare.com/?to=/:account/:zone/zaraz/tools-config/tools/catalog'
+            )
+          } else {
+            exit(1)
+          }
 
-        if (!resultData.stderr) {
-          console.log(
-            'Worker',
-            argv.workerName ? argv.workerName : 'custom-mc-cf-zaraz',
-            'published succesfully'
-          )
-          console.log(resultData.stdout)
-          console.log(
-            '\n🚀 Head to your Cloudflare Zaraz Dashboard to configure this Managed Component as a new tool. https://dash.cloudflare.com/?to=/:account/:zone/zaraz/tools-config/tools/catalog'
-          )
-        } else {
-          throw new Error(resultData.stderr)
-        }
-
-        try {
-          fs.rmSync(TMP_DIR, { recursive: true, force: true })
-        } catch (err) {
-          console.error(err)
-        }
+          exit(0)
+        })
       }
     )
     .help().argv
