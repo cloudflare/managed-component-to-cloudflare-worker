@@ -1,16 +1,16 @@
 # Managed Component To Cloudflare Worker 
 
-Managed Component To Cloudflare Worker provides an easy way for using custom Managed Components with Cloudflare Zaraz, by deploying them as a Cloudflare Worker. Deployed Managed Components can be configured as Tools within [Cloudflare Zaraz](https://dash.cloudflare.com/) from the `Add new Tool` page.
+Managed Component To Cloudflare Worker provides an easy way for using custom Managed Components with Cloudflare Zaraz, by deploying them as a Cloudflare Worker. Deployed Managed Components can be configured as Tools within [Cloudflare Zaraz](https://dash.cloudflare.com/) from the "Add new Tool" page.
 
 ## Usage
 
 > 💡 **Prerequisite:** To deploy a new Cloudflare Worker you need to first login with using `npx wrangler login`
 
-### Using npx
+### Using `npx`
 
 Your Managed Component should be bundled before trying to deploy it.
 
-`npx managed-component-to-cloudflare-worker -c /path/to/managed/component.js -w component-name`
+`npx managed-component-to-cloudflare-worker /path/to/managed/component.js component-name`
 
 ### Cloning this repository
 
