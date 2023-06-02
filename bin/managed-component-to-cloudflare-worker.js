@@ -117,7 +117,7 @@ WORKER_NAME: Name of the Cloudflare Worker to be created `)
   process.stdout.write(
     'Packing your Managed Component as a Cloudflare Worker...'
   )
-  fs.cpSync(SRC_DIR + 'sdfs/32dsf/sfd', TMP_DIR + '/sdf/sdf/31', {
+  fs.cpSync(SRC_DIR, TMP_DIR, {
     recursive: true,
     force: true,
   })
