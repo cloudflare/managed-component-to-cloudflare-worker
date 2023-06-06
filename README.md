@@ -6,13 +6,13 @@ Managed Component To Cloudflare Worker provides an easy way for using custom Man
 
 > 💡 **Prerequisite:** To deploy a new Cloudflare Worker you need to first login with using `npx wrangler login`
 
-### Using `npx`
+### Recommended: Using `npx`
 
 Your Managed Component should be bundled before trying to deploy it.
 
 `npx managed-component-to-cloudflare-worker /path/to/managed/component.js component-name`
 
-### Cloning this repository
+### Advanced: Manual Worker setup
 
 This method gives you more flexibility but requires you to be familiar with `wrangler` and Cloudflare Workers in general.
 
