@@ -19,5 +19,5 @@ This method gives you more flexibility but requires you to be familiar with `wra
 - Clone this repository
 - Copy your Managed Component files to `./src` (it's recommended to create a new directory within `./src` if you're not using an already bundled Managed Component)
 - Import your Managed Component in index.ts by replacing the line `import component from './component.js'` with your `import` command
-- Edit [wrangler.toml] if you need to change the Worker name or if you're using a more complex Worker configuration for your Managed Component
+- Edit [wrangler.toml](wrangler.toml) if you need to change the Worker name or if you're using a more complex Worker configuration for your Managed Component. Your Worker name must start with `custom-mc-` for it to appear in the Cloudflare Dashboard.
 - Run `npx wrangler publish`
