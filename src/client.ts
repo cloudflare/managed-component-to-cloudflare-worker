@@ -13,7 +13,6 @@ export class Client implements MCClient {
   emitter: string
   userAgent: string
   offset?: number
-  response: Context['response']
   language: string
   referer: string
   ip: string
@@ -24,13 +23,14 @@ export class Client implements MCClient {
   #cookies: Record<string, string>
   #pendingCookies: Context['response']['pendingCookies']
   #clientPrefs: Context['response']['clientPrefs']
+  #response: Context['response']
 
   constructor(clientData: Record<string, any>, context: Context) {
     this.#permissions = context.permissions
     this.#component = context.component
     this.#componentPath = context.componentPath
     this.url = new URL(clientData.url)
-    this.response = context.response
+    this.#response = context.response
     this.title = clientData.title
     this.timestamp = clientData.timestamp
     this.userAgent = clientData.userAgent
@@ -54,7 +54,7 @@ export class Client implements MCClient {
   ): boolean | undefined {
     const permission = 'client_network_requests'
     if (hasPermission(this.#component, permission, this.#permissions)) {
-      this.response.fetch.push([resource, settings || {}])
+      this.#response.fetch.push([resource, settings || {}])
       return true
     }
     return false
@@ -63,15 +63,15 @@ export class Client implements MCClient {
   execute(code: string): boolean | undefined {
     const permission = 'execute_unsafe_scripts'
     if (hasPermission(this.#component, permission, this.#permissions)) {
-      this.response.execute.push(code)
+      this.#response.execute.push(code)
       return true
     }
     return false
   }
 
   return(value: unknown): void {
-    this.response.return ||= {}
-    this.response.return[this.#componentPath] = value
+    this.#response.return ||= {}
+    this.#response.return[this.#componentPath] = value
   }
 
   set(

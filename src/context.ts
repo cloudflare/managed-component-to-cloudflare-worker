@@ -8,11 +8,13 @@ export interface Context {
   componentPath: string
   cookies: Record<string, string>
   permissions: string[]
+  debug: boolean
   response: {
     fetch: (string | [string, RequestInit])[]
     execute: string[]
     return?: Record<string, unknown>
     pendingCookies: Record<string, [string, string]>
     clientPrefs: Record<string, string[]>
+    serverFetch: Record<string, any>[] // this is used for zarazLogs
   }
 }

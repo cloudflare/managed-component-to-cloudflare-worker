@@ -9,6 +9,7 @@ import { Context } from './context'
 import { get, set } from './storage'
 import { invalidateCache, useCache } from './useCache'
 import { hasPermission } from './utils'
+import { internalFetch } from './models'
 
 export class Manager implements MCManager {
   #routePath: string
@@ -16,6 +17,8 @@ export class Manager implements MCManager {
   #clientListeners: Record<string, MCEventListener>
   component: string
   #permissions: string[]
+  #debug: boolean
+  #response: Context['response']
 
   constructor(context: Context) {
     this.component = context.component
@@ -23,6 +26,8 @@ export class Manager implements MCManager {
     this.#clientListeners = context.clientEvents
     this.#routePath = context.routePath
     this.#permissions = context.permissions
+    this.#debug = context.debug
+    this.#response = context.response
   }
 
   addEventListener(type: string, callback: MCEventListener) {
@@ -39,6 +44,22 @@ export class Manager implements MCManager {
   }
   set(key: string, value: any): boolean | undefined {
     return set(this.component + '__' + key, value)
+  }
+
+  fetch(resource: string, settings?: RequestInit) {
+    // typed as fetch override
+    const fetchCall = (globalThis as any).systemFetch(resource, settings || {})
+
+    if (this.#debug) {
+      this.#response.serverFetch.push({
+        resource,
+        ...(settings?.body && {
+          payload: settings.body,
+          method: settings.method || 'GET',
+        }),
+      })
+    }
+    return fetchCall
   }
 
   route(path: string, callback: (request: any) => Response) {

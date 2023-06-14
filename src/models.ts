@@ -8,6 +8,7 @@ export type EventBody = {
   componentPath: string
   permissions: string[]
   component: string
+  debug: boolean
 }
 
 export type InitBody = {
@@ -16,3 +17,8 @@ export type InitBody = {
   permissions: string[]
   component: string
 }
+
+export type internalFetch = (
+  resource: string | Request,
+  settings?: RequestInit | Request
+) => Promise<Response>

@@ -2,7 +2,27 @@ import { ComponentSettings } from '@managed-components/types'
 import { Client } from './client'
 import { Context } from './context'
 import { Manager } from './manager'
-import { EventBody, InitBody } from './models'
+import { EventBody, InitBody, internalFetch } from './models'
+;(globalThis as any).systemFetch = globalThis.fetch
+globalThis.fetch = async (
+  resource: string | Request,
+  settings?: RequestInit | Request
+) => {
+  // For now we will keep supporting normal fetch, but later we can replace the console.error with throw
+  console.error(
+    `Fetch isn't available to Managed Components, please choose client.fetch or manager.fetch. Trying to call: ${JSON.stringify(
+      resource
+    )}`
+  )
+  return new Response(
+    JSON.stringify({
+      response: `Fetch isn't available to Managed Components, please choose client.fetch or manager.fetch. Trying to call: ${JSON.stringify(
+        resource
+      )}`,
+    }),
+    { status: 405 }
+  )
+}
 
 export const handleRequest = async (
   request: Request,
@@ -16,12 +36,14 @@ export const handleRequest = async (
     routePath: '',
     cookies: {},
     permissions: [],
+    debug: false,
     response: {
       fetch: [],
       execute: [],
       return: {},
       pendingCookies: {},
       clientPrefs: {},
+      serverFetch: [],
     },
   }
 
@@ -39,9 +61,9 @@ export const handleRequest = async (
     context.componentPath = body.componentPath
     context.permissions = body.permissions
     context.component = body.component
-    const manager = new Manager(context)
 
     if (url.pathname === '/init') {
+      const manager = new Manager(context)
       const { settings } = body as InitBody
       await componentCb(manager, settings)
       const { cookies, ...restOfContext } = context
@@ -54,11 +76,15 @@ export const handleRequest = async (
         })
       )
     } else if (url.pathname === '/event') {
-      const { eventType, event, settings, clientData, componentPath } =
+      const { eventType, event, settings, clientData, debug } =
         body as EventBody
       const isClientEvent = url.searchParams.get('type') === 'client'
 
       context.cookies = clientData.cookies
+      context.debug = debug
+
+      const manager = new Manager(context)
+
       await componentCb(manager, settings)
       event.client = new Client(clientData, context)
       if (isClientEvent) {
@@ -67,7 +93,7 @@ export const handleRequest = async (
         }
       } else {
         if (Object.keys(context.events).includes(eventType)) {
-          context.events[eventType].forEach((fn) => fn(event))
+          await Promise.all(context.events[eventType].map(fn => fn(event)))
         }
       }
 
