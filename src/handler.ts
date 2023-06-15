@@ -2,11 +2,11 @@ import { ComponentSettings } from '@managed-components/types'
 import { Client } from './client'
 import { Context } from './context'
 import { Manager } from './manager'
-import { EventBody, InitBody, internalFetch } from './models'
+import { EventBody, InitBody } from './models'
 ;(globalThis as any).systemFetch = globalThis.fetch
 globalThis.fetch = async (
   resource: string | Request,
-  settings?: RequestInit | Request
+  _settings?: RequestInit | Request
 ) => {
   // For now we will keep supporting normal fetch, but later we can replace the console.error with throw
   console.error(
@@ -15,12 +15,10 @@ globalThis.fetch = async (
     )}`
   )
   return new Response(
-    JSON.stringify({
-      response: `Fetch isn't available to Managed Components, please choose client.fetch or manager.fetch. Trying to call: ${JSON.stringify(
-        resource
-      )}`,
-    }),
-    { status: 405 }
+    `Fetch isn't available to Managed Components, please choose client.fetch or manager.fetch. Trying to call: ${JSON.stringify(
+      resource
+    )}`,
+    { status: 500 }
   )
 }
 
