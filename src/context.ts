@@ -17,4 +17,5 @@ export interface Context {
     clientPrefs: Record<string, string[]>
     serverFetch: Record<string, any>[] // this is used for zarazLogs
   }
+  execContext: ExecutionContext
 }

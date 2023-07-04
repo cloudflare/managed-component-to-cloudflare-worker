@@ -19,6 +19,7 @@ export class Manager implements MCManager {
   #permissions: string[]
   #debug: boolean
   #response: Context['response']
+  #execContext: ExecutionContext
 
   constructor(context: Context) {
     this.component = context.component
@@ -28,6 +29,7 @@ export class Manager implements MCManager {
     this.#permissions = context.permissions
     this.#debug = context.debug
     this.#response = context.response
+    this.#execContext = context.execContext
   }
 
   addEventListener(type: string, callback: MCEventListener) {
@@ -49,6 +51,7 @@ export class Manager implements MCManager {
   fetch(resource: string, settings?: RequestInit) {
     // typed as fetch override
     const fetchCall = (globalThis as any).systemFetch(resource, settings || {})
+    this.#execContext.waitUntil(fetchCall)
 
     if (this.#debug) {
       this.#response.serverFetch.push({

@@ -24,6 +24,7 @@ globalThis.fetch = async (
 
 export const handleRequest = async (
   request: Request,
+  execContext: ExecutionContext,
   componentCb: (manager: Manager, settings: ComponentSettings) => void
 ) => {
   const context: Context = {
@@ -43,6 +44,7 @@ export const handleRequest = async (
       clientPrefs: {},
       serverFetch: [],
     },
+    execContext,
   }
 
   if (request.method === 'POST') {
