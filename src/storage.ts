@@ -1,11 +1,14 @@
-const BASE_DIR = 'kv'
-
-export const set = (key: string, value: any) => {
-  // writeFileSync(BASE_DIR + '/' + key, JSON.stringify(value))
+export const set = (
+  KV: KVNamespace,
+  context: ExecutionContext,
+  key: string,
+  value: any
+) => {
+  context.waitUntil(KV.put(key, value))
   return true
 }
 
-export const get = (key: string) => {
-  // return JSON.parse(readFileSync(BASE_DIR + '/' + key).toString())
-  return ''
+export const get = async (KV: KVNamespace, key: string) => {
+  const value = await KV.get(key)
+  return value || undefined
 }

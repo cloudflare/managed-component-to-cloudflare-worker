@@ -22,3 +22,7 @@ export type internalFetch = (
   resource: string | Request,
   settings?: RequestInit | Request
 ) => Promise<Response>
+
+export type Env = {
+  KV: KVNamespace
+}

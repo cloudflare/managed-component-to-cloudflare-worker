@@ -1,4 +1,5 @@
 import { MCEventListener } from '@managed-components/types'
+import { Env } from './models'
 
 export interface Context {
   events: Record<string, MCEventListener[]>
@@ -18,4 +19,5 @@ export interface Context {
     serverFetch: Record<string, any>[] // this is used for zarazLogs
   }
   execContext: ExecutionContext
+  env: Env
 }
