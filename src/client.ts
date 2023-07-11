@@ -4,7 +4,7 @@ import {
   Manager,
 } from '@managed-components/types'
 import { Context } from './context'
-import { genCookieOptions, hasPermission } from './utils'
+import { hasPermission } from './utils'
 
 export class Client implements MCClient {
   #permissions: string[]
@@ -90,19 +90,7 @@ export class Client implements MCClient {
     const cookieKey = this.#componentPath + '__' + key
 
     this.#cookies[cookieKey] = value as string
-
-    const cookieOptions = genCookieOptions(
-      this.#response,
-      opts,
-      this.#baseDomain,
-      cookieKey,
-      value
-    )
-    if (cookieOptions) {
-      this.#pendingCookies[cookieKey] = [value as string, cookieOptions]
-    } else {
-      this.#cookies[cookieKey] = value as string
-    }
+    this.#pendingCookies[cookieKey] = { value, opts }
 
     return true
   }

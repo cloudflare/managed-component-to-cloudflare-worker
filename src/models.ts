@@ -22,13 +22,3 @@ export type internalFetch = (
   resource: string | Request,
   settings?: RequestInit | Request
 ) => Promise<Response>
-
-export interface CookieOptions {
-  Domain?: string
-  Path?: string
-  Expires?: string | Date
-  'Max-Age'?: number
-  Secure?: Boolean
-  HttpOnly?: Boolean
-  SameSite?: 'Strict' | 'Lax' | 'None'
-}

@@ -13,7 +13,10 @@ export interface Context {
     fetch: (string | [string, RequestInit])[]
     execute: string[]
     return?: Record<string, unknown>
-    pendingCookies: Record<string, [string, string]>
+    pendingCookies: Record<
+      string,
+      { value: string | null | undefined; opts: any }
+    >
     clientPrefs: Record<string, string[]>
     serverFetch: Record<string, any>[] // this is used for zarazLogs
   }
