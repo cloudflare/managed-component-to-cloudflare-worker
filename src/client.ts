@@ -11,8 +11,12 @@ export class Client implements MCClient {
   #component: string
   #componentPath: string
   emitter: string
+  screenWidth?: number | undefined
+  screenHeight?: number | undefined
+  viewportHeight?: number | undefined
+  viewportWidth?: number | undefined
   userAgent: string
-  offset?: number
+  timezoneOffset?: number
   language: string
   referer: string
   ip: string
@@ -37,9 +41,13 @@ export class Client implements MCClient {
     this.language = clientData.language
     this.referer = clientData.referer
     this.ip = clientData.ip
-    this.offset = parseInt(clientData.timezoneOffset)
+    this.timezoneOffset = parseInt(clientData.timezoneOffset)
     this.emitter = clientData.emitter
     this.#baseDomain = clientData.baseDomain
+    this.screenWidth = clientData.screenWidth
+    this.screenHeight = clientData.screenHeight
+    this.viewportWidth = clientData.viewportWidth
+    this.viewportHeight = clientData.viewportHeight
 
     this.#cookies = context.cookies
 
@@ -83,14 +91,22 @@ export class Client implements MCClient {
 
     this.#cookies[cookieKey] = value as string
 
-    const cookieOptions = genCookieOptions(opts, this.#baseDomain)
-    this.#pendingCookies[cookieKey] = [value as string, cookieOptions]
+    const cookieOptions = genCookieOptions(
+      this.#response,
+      opts,
+      this.#baseDomain,
+      cookieKey,
+      value
+    )
+    if (cookieOptions) {
+      this.#pendingCookies[cookieKey] = [value as string, cookieOptions]
+    } else {
+      this.#cookies[cookieKey] = value as string
+    }
 
     return true
   }
 
-  // TODO can we support here get from another component ???
-  // We can but the question is if we should and how should we do it?
   get(key: string): string | undefined {
     const cookieKey = this.#componentPath + '__' + key
     return this.#cookies[cookieKey]
