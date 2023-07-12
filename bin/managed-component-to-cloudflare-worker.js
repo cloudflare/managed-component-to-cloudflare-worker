@@ -68,6 +68,126 @@ function replaceWorkerName(workerName) {
   })
 }
 
+/**
+ * Check if prompt input is a valid yes response
+ */
+async function isYesResponse(promptText) {
+  const response = await getValidPromptResponse(promptText)
+  if (response === 'y' || response === 'yes') return true
+  return false
+}
+
+/**
+ * Repeat prompt until a valid response is provided
+ */
+async function getValidPromptResponse(
+  promptText, 
+  isValid = function(resp) {
+    return ['y', 'yes', 'n', 'no'].includes(resp)
+  }
+) {
+  let response = await prompt(promptText)
+  response = response.trim()
+  if (isValid(response)) return response
+
+  console.error(`\nError: Invalid input!`)
+  return await getValidPromptResponse(promptText, isValid)
+}
+
+/**
+ * Check if component file uses any methods that require KV binding
+ */
+function fileContainsKVMethods(path) {
+  const KVMethods = ['manager.get', 'manager.set', 'manager.useCache', 'manager.invalidateCache']
+  const data = fs.readFileSync(path);
+  return KVMethods.some(str => data.includes(str))
+}
+
+/**
+ * Get KV id from KV binding string ({ binding = "name", id = "id" })
+ */
+function getKvId(str) {
+  return str?.match(/id = ".*"/)?.[0].split('"')[1]
+}
+
+/**
+ * Creates new KV namespace and returns its ID
+ */
+async function createNewKvNamespace() {
+  const kvName = await getValidPromptResponse(
+    `\nPlease enter your new KV namespace name: `,
+    function(input) { return !!input }
+  )
+  console.log(`Creating namespace "${kvName}"...`)
+  let kvId = ''
+  const shell = spawn(
+    'npx',
+    ['wrangler', 'kv:namespace', 'create', kvName],
+    { stdio: 'pipe' }
+  )
+  shell.stdout.setEncoding('utf8')
+  for await (const data of shell.stdout) {
+    const kvBindingStr = data.match(/{.*binding.*id.*}/g)?.[0]
+    if (kvBindingStr) kvId = getKvId(kvBindingStr)
+  }
+  for await (const err of shell.stderr) {
+    console.error(err.toString())
+    exit(1)
+  }
+  await new Promise(function(resolve, _) {
+    shell.on('close', async function(code) {
+      if (code === 0) console.log(`✅ Successfully created namespace with title "${kvName}", id: "${kvId}"`)
+      else kvId = await createNewKvNamespace()
+      resolve()
+    });
+  });
+  return kvId
+}
+
+/**
+ * Lists existing KVs and prompts to choose one
+ */
+async function getExistingKvId() {
+  console.log(`Looking for existing KVs...`)
+  let kvList = ''
+  const shell = spawn(
+    'npx',
+    ['wrangler', 'kv:namespace', 'list'],
+    { stdio: 'pipe' }
+  )
+  shell.stdout.setEncoding('utf8')
+  for await (const data of shell.stdout) {
+    kvList += data.toString()
+  }
+  for await (const err of shell.stderr) {
+    console.error(err.toString())
+  }
+  console.info(`The following KVs exist in your account:\n${kvList}`)
+
+  return await getValidPromptResponse(
+    `\nPlease provide the ID of the existing KV namespace that you want to use (see above): `,
+    function(input) { return kvList.includes(`"id": "${input}"`) }
+  )
+}
+
+/**
+ * Create new or use existing KV namespace to add a binding in wrangler.toml
+ */
+async function setupKVBinding() {
+  console.log(`\nSince your component is using storage methods, you need to set up a KV namespace binding for those methods to work.`)
+  const needsNewKV = await isYesResponse(`Would you like to create a new KV namespace? (y/n): `)
+  let kvId = ''
+  if (needsNewKV) {
+    kvId = await createNewKvNamespace()
+  } else {
+    kvId = await getExistingKvId()
+  }
+  let toml = fs.readFileSync(WRANGLER_TOML_PATH)
+  toml += `\nkv_namespaces = [{ binding = "KV", id = "${kvId}" }]`
+  fs.writeFileSync(WRANGLER_TOML_PATH, toml)
+  console.log(`✅ KV binding has been successfully added.`)
+}
+
 //------------------------------------------------------------------------------
 // Execution
 //------------------------------------------------------------------------------
@@ -131,11 +251,21 @@ WORKER_NAME: Name of the Cloudflare Worker to be created `)
   }
   replaceWorkerName(workerName)
 
-  const userInput = await prompt(
-    `\nYour Cloudflare Worker will be named "${workerName}".\nEnter "yes" to deploy with Wrangler: `
+  const userInput = await isYesResponse(
+    `\nYour Cloudflare Worker will be named "${workerName}".\nEnter "y" to deploy with Wrangler: `
   )
+  if (!userInput) exit(0)
 
-  if (userInput !== 'yes') exit(0)
+  if (!fileContainsKVMethods(componentPath)) {
+    const componentNeedsKV = await isYesResponse(
+      `\nDoes your component use any of these methods: manager.get, manager.set, manager.useCache, manager.invalidateCache? (y/n): `
+    )
+    if (componentNeedsKV) {
+      await setupKVBinding()
+    }
+  } else {
+    await setupKVBinding()
+  }
 
   console.log('\nDeploying', workerName, 'as Cloudflare Zaraz Custom MC...')
 
