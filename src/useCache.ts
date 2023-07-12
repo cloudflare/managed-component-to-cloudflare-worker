@@ -1,17 +1,26 @@
-const cache: { [k: string]: { value: any; expiry: number } } = {}
-
 export const useCache = async (
+  KV: KVNamespace,
+  context: ExecutionContext,
   key: string,
   callback: Function,
   expirySeconds = 3600
 ) => {
-  const currentTime = new Date().valueOf() / 1000
-  const cached = cache[key]
-  if (cached && cached.expiry >= currentTime) return cached.value
-  cache[key] = { value: await callback(), expiry: currentTime + expirySeconds }
-  return cache[key].value
+  const cached = await KV.get(key)
+  if (cached) return cached
+
+  const valueToCache = await callback()
+
+  context.waitUntil(
+    KV.put(key, valueToCache, {
+      expirationTtl: expirySeconds,
+    })
+  )
 }
 
-export const invalidateCache = (key: string) => {
-  delete cache[key]
+export const invalidateCache = (
+  KV: KVNamespace,
+  context: ExecutionContext,
+  key: string
+) => {
+  context.waitUntil(KV.delete(key))
 }
