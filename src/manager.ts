@@ -9,7 +9,7 @@ import { Context } from './context'
 import { get, set } from './storage'
 import { invalidateCache, useCache } from './useCache'
 import { hasPermission } from './utils'
-import { internalFetch } from './models'
+import { Env } from './models'
 
 export class Manager implements MCManager {
   #routePath: string
@@ -20,6 +20,8 @@ export class Manager implements MCManager {
   #debug: boolean
   #response: Context['response']
   #execContext: ExecutionContext
+  #env: Env
+  name: string
 
   constructor(context: Context) {
     this.component = context.component
@@ -30,6 +32,8 @@ export class Manager implements MCManager {
     this.#debug = context.debug
     this.#response = context.response
     this.#execContext = context.execContext
+    this.#env = context.env
+    this.name = 'Zaraz'
   }
 
   addEventListener(type: string, callback: MCEventListener) {
@@ -41,11 +45,16 @@ export class Manager implements MCManager {
     this.#clientListeners[type] = callback
     return true
   }
-  get(key: string): string | undefined {
-    return get(this.component + '__' + key)
+  async get(key: string) {
+    return await get(this.#env.KV, this.component + '__' + key)
   }
-  set(key: string, value: any): boolean | undefined {
-    return set(this.component + '__' + key, value)
+  set(key: string, value: any) {
+    return set(
+      this.#env.KV,
+      this.#execContext,
+      this.component + '__' + key,
+      value
+    )
   }
 
   fetch(resource: string, settings?: RequestInit) {
@@ -97,12 +106,21 @@ export class Manager implements MCManager {
   }
 
   async useCache(key: string, callback: Function, expiry?: number) {
-    return await useCache(this.component + '__' + key, callback, expiry)
+    return await useCache(
+      this.#env.KV,
+      this.#execContext,
+      this.component + '__' + key,
+      callback,
+      expiry
+    )
   }
 
   invalidateCache(key: string) {
-    invalidateCache(this.component + '__' + key)
-    return true
+    return invalidateCache(
+      this.#env.KV,
+      this.#execContext,
+      this.component + '__' + key
+    )
   }
 
   registerEmbed(name: string, callback: EmbedCallback) {

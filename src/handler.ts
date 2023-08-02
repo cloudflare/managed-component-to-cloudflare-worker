@@ -2,7 +2,7 @@ import { ComponentSettings } from '@managed-components/types'
 import { Client } from './client'
 import { Context } from './context'
 import { Manager } from './manager'
-import { EventBody, InitBody } from './models'
+import { Env, EventBody, InitBody } from './models'
 ;(globalThis as any).systemFetch = globalThis.fetch
 globalThis.fetch = async (
   resource: string | Request,
@@ -25,6 +25,7 @@ globalThis.fetch = async (
 export const handleRequest = async (
   request: Request,
   execContext: ExecutionContext,
+  env: Env,
   componentCb: (manager: Manager, settings: ComponentSettings) => void
 ) => {
   const context: Context = {
@@ -45,6 +46,7 @@ export const handleRequest = async (
       serverFetch: [],
     },
     execContext,
+    env,
   }
 
   if (request.method === 'POST') {
