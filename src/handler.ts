@@ -91,7 +91,7 @@ export const handleRequest = async (
       event.client = new Client(clientData, context)
       if (isClientEvent) {
         if (Object.keys(context.clientEvents).includes(eventType)) {
-          context.clientEvents[eventType](event)
+          await context.clientEvents[eventType](event)
         }
       } else {
         if (Object.keys(context.events).includes(eventType)) {
