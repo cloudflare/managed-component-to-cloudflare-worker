@@ -1,21 +1,18 @@
 import { ComponentSettings, MCEvent } from '@managed-components/types'
 
-export type EventBody = {
-  settings: ComponentSettings
-  event: MCEvent
-  clientData: Record<string, any>
-  eventType: string
-  componentPath: string
-  permissions: string[]
-  component: string
-  debug: boolean
-}
-
 export type InitBody = {
   settings: ComponentSettings
   componentPath: string
   permissions: string[]
   component: string
+  routePath: string
+}
+
+export type EventBody = InitBody & {
+  event: MCEvent
+  clientData: Record<string, any>
+  eventType: string
+  debug: boolean
 }
 
 export type internalFetch = (
@@ -26,3 +23,5 @@ export type internalFetch = (
 export type Env = {
   KV: KVNamespace
 }
+
+export type RouteHandler = (r: Request) => Promise<Response> | Response
