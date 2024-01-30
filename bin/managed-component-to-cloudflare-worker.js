@@ -201,14 +201,16 @@ async function setupKVBinding() {
 
 Publish a custom Managed Component as a Cloudflare Worker, for using with Cloudflare Zaraz.
 
-Usage: npx managed-component-to-cloudflare-worker COMPONENT_SCRIPT WORKER_NAME
+Usage: npx managed-component-to-cloudflare-worker COMPONENT_SCRIPT WORKER_NAME [WRANGLER_TOML_PATH]
 
 COMPONENT_SCRIPT: Path to your compiled Managed Component JavaScript file
-WORKER_NAME: Name of the Cloudflare Worker to be created `)
+WORKER_NAME: Name of the Cloudflare Worker to be created
+WRANGLER_TOML_PATH: (Optional) Path to your custom wrangler.toml file`)
     exit(1)
   }
   const componentPath = process.argv[2]
   let workerName = process.argv[3]
+  let customWranglerTomlPath = process.argv[4]
 
   require('ts-node').register({
     files: true,
@@ -245,6 +247,13 @@ WORKER_NAME: Name of the Cloudflare Worker to be created `)
 
   // copy component code to the temporary folder
   fs.copyFileSync(componentPath, TMP_DIR + '/src/component.js')
+
+  // copy custom wrangler.toml if provided
+  if (customWranglerTomlPath) {
+    process.stdout.write('Copying your custom wrangler.toml...')
+    fs.copyFileSync(customWranglerTomlPath, WRANGLER_TOML_PATH)
+    console.log(' ✅')
+  }
 
   if (!workerName.startsWith('custom-mc-')) {
     workerName = 'custom-mc-' + workerName
