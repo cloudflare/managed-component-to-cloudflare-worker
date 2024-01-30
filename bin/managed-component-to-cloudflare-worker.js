@@ -123,7 +123,7 @@ async function createNewKvNamespace() {
   const shell = spawn(
     'npx',
     ['wrangler', 'kv:namespace', 'create', kvName],
-    { stdio: 'pipe' }
+    { stdio: 'pipe', shell: true }
   )
   shell.stdout.setEncoding('utf8')
   for await (const data of shell.stdout) {
@@ -153,7 +153,7 @@ async function getExistingKvId() {
   const shell = spawn(
     'npx',
     ['wrangler', 'kv:namespace', 'list'],
-    { stdio: 'pipe' }
+    { stdio: 'pipe', shell: true }
   )
   shell.stdout.setEncoding('utf8')
   for await (const data of shell.stdout) {
@@ -272,7 +272,7 @@ WORKER_NAME: Name of the Cloudflare Worker to be created `)
   const shell = spawn(
     'npx',
     ['wrangler', 'publish', '--config', TMP_DIR + '/wrangler.toml'],
-    { stdio: 'inherit' }
+    { stdio: 'inherit', shell: true }
   )
   shell.on('close', code => {
     if (code === 0) {
