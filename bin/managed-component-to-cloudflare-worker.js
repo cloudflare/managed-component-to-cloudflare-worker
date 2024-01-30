@@ -58,7 +58,8 @@ function replaceWorkerName(workerName) {
     if (err) {
       throw new Error(err)
     }
-    var result = data.replace(/custom-mc-cf-zaraz/g, workerName)
+    let tomlName = data.match(/name = ".*"/g)?.[0]
+    var result = data.replace(tomlName, `name = "${workerName}"`)
 
     fs.writeFile(WRANGLER_TOML_PATH, result, 'utf8', function (err) {
       if (err) {
@@ -265,15 +266,17 @@ WRANGLER_TOML_PATH: (Optional) Path to your custom wrangler.toml file`)
   )
   if (!userInput) exit(0)
 
-  if (!fileContainsKVMethods(componentPath)) {
-    const componentNeedsKV = await isYesResponse(
-      `\nDoes your component use any of these methods: manager.get, manager.set, manager.useCache, manager.invalidateCache? (y/n): `
-    )
-    if (componentNeedsKV) {
+  if (!customWranglerTomlPath) {
+    if (!fileContainsKVMethods(componentPath)) {
+      const componentNeedsKV = await isYesResponse(
+        `\nDoes your component use any of these methods: manager.get, manager.set, manager.useCache, manager.invalidateCache? (y/n): `
+      )
+      if (componentNeedsKV) {
+        await setupKVBinding()
+      }
+    } else {
       await setupKVBinding()
     }
-  } else {
-    await setupKVBinding()
   }
 
   console.log('\nDeploying', workerName, 'as Cloudflare Zaraz Custom MC...')
