@@ -12,6 +12,10 @@ Your Managed Component should be bundled before trying to deploy it.
 
 `npx managed-component-to-cloudflare-worker /path/to/managed/component.js component-name`
 
+### Custom wrangler.toml Configuration Using `npx`
+Pass the path to your custom wrangler.toml file as an optional third argument. Passed in component name will override the name in the custom wrangler.toml file.
+`npx managed-component-to-cloudflare-worker /path/to/managed/component.js component-name /path/to/wrangler.toml`
+
 ### Advanced: Manual Worker setup
 
 This method gives you more flexibility but requires you to be familiar with `wrangler` and Cloudflare Workers in general.
