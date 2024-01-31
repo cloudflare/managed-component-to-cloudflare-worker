@@ -269,6 +269,7 @@ WORKER_NAME: Name of the Cloudflare Worker to be created `)
 
   console.log('\nDeploying', workerName, 'as Cloudflare Zaraz Custom MC...')
 
+    console.log(require.resolve("wrangler"));
   const shell = spawn(
     'npx',
     ['wrangler', 'publish', '--config', TMP_DIR + '/wrangler.toml'],
