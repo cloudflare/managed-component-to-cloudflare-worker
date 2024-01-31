@@ -16,7 +16,7 @@ function spawnWrangler(...params){
   const process = spawn(
     'node',
     [require.resolve("wrangler"), ...params],
-    { stdio: 'pipe' }
+    { stdio: 'inherit' }
   )
   return process;
 }
