@@ -1,6 +1,6 @@
 {
   "name": "managed-component-to-cloudflare-worker",
-  "version": "1.5.2--alpha",
+  "version": "1.5.1",
   "dependencies": {
     "ts-node": "^10.8.1",
     "wrangler": "2.0.23"
