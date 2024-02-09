@@ -4,12 +4,13 @@
 
 const fs = require('fs')
 const path = require('path')
-const crypto = require('crypto')
 const readline = require('readline')
 const { spawn } = require('child_process')
+const { createTempDirectorySync } = require('create-temp-directory')
+
 
 const SRC_DIR = path.join(__dirname, '..')
-const TMP_DIR = '/tmp/custom-mc-' + crypto.randomUUID()
+const TMP_DIR = createTempDirectorySync().path
 const WRANGLER_TOML_PATH = TMP_DIR + '/wrangler.toml'
 
 function spawnWrangler(...params){
