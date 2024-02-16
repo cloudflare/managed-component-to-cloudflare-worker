@@ -9,10 +9,12 @@ import { Context } from './context'
 import { get, set } from './storage'
 import { invalidateCache, useCache } from './useCache'
 import { hasPermission } from './utils'
-import { Env } from './models'
+import { Env, RouteHandler } from './models'
 
 export class Manager implements MCManager {
+  #componentPath: string
   #routePath: string
+  #mappedEndpoints: Record<string, RouteHandler>
   #listeners: Record<string, MCEventListener[]>
   #clientListeners: Record<string, MCEventListener>
   component: string
@@ -27,7 +29,9 @@ export class Manager implements MCManager {
     this.component = context.component
     this.#listeners = context.events
     this.#clientListeners = context.clientEvents
+    this.#componentPath = context.componentPath
     this.#routePath = context.routePath
+    this.#mappedEndpoints = context.mappedEndpoints
     this.#permissions = context.permissions
     this.#debug = context.debug
     this.#response = context.response
@@ -73,15 +77,13 @@ export class Manager implements MCManager {
     }
     return fetchCall
   }
-
-  route(path: string, callback: (request: any) => Response) {
+  route(path: string, callback: RouteHandler) {
     const permission = 'provide_server_functionality'
     if (hasPermission(this.component, permission, this.#permissions)) {
-      // TODO properly do this
-      const fullPath = this.#routePath + path
+      const fullPath = this.#routePath + this.#componentPath + path
+      this.#mappedEndpoints[fullPath] = callback
       return fullPath
     }
-    return undefined
   }
   proxy(path: string, target: string) {
     const permission = 'provide_server_functionality'

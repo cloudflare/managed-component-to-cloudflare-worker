@@ -34,6 +34,7 @@ export const handleRequest = async (
     events: {},
     clientEvents: {},
     routePath: '',
+    mappedEndpoints: {},
     cookies: {},
     permissions: [],
     debug: false,
@@ -49,8 +50,35 @@ export const handleRequest = async (
     env,
   }
 
-  if (request.method === 'POST') {
-    const url = new URL(request.url)
+  const url = new URL(request.url)
+  if (url.pathname === '/route') {
+    let settings: ComponentSettings
+    let routeEndpoint: string
+    let params: string
+    try {
+      context.component = request.headers.get('zaraz-component') || ''
+      context.componentPath = request.headers.get('zaraz-component-path') || ''
+      context.routePath = request.headers.get('zaraz-route-path') || ''
+      routeEndpoint = request.headers.get('zaraz-route-endpoint') || ''
+      context.permissions = JSON.parse(
+        request.headers.get('zaraz-permissions') || ''
+      )
+      settings = JSON.parse(request.headers.get('zaraz-settings') || '')
+      params = new URL(request.url).searchParams.toString()
+    } catch (e) {
+      return new Response('Invalid headers', { status: 400 })
+    }
+    const manager = new Manager(context)
+    await componentCb(manager, settings)
+    try {
+      return await context.mappedEndpoints[routeEndpoint](
+        new Request(routeEndpoint + '?' + params, request.clone())
+      )
+    } catch (e) {
+      console.error(e)
+      return new Response('Route handler error', { status: 500 })
+    }
+  } else if (request.method === 'POST') {
     let body: InitBody | EventBody
 
     try {
@@ -63,6 +91,7 @@ export const handleRequest = async (
     context.componentPath = body.componentPath
     context.permissions = body.permissions
     context.component = body.component
+    context.routePath = body.routePath || ''
 
     if (url.pathname === '/init') {
       const manager = new Manager(context)
@@ -75,6 +104,7 @@ export const handleRequest = async (
           events: Object.keys(context.events),
           clientEvents: Object.keys(context.clientEvents),
           componentPath: context.componentPath,
+          mappedEndpoints: Object.keys(context.mappedEndpoints),
         })
       )
     } else if (url.pathname === '/event') {

@@ -1,10 +1,11 @@
 import { MCEventListener } from '@managed-components/types'
-import { Env } from './models'
+import { Env, RouteHandler } from './models'
 
 export interface Context {
   events: Record<string, MCEventListener[]>
   clientEvents: Record<string, MCEventListener>
   routePath: string
+  mappedEndpoints: Record<string, RouteHandler>
   component: string
   componentPath: string
   cookies: Record<string, string>
