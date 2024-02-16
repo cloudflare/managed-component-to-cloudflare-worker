@@ -22,7 +22,7 @@ export class Manager implements MCManager {
   #debug: boolean
   #response: Context['response']
   #execContext: ExecutionContext
-  #env: Env
+  env: Env
   name: string
 
   constructor(context: Context) {
@@ -36,7 +36,7 @@ export class Manager implements MCManager {
     this.#debug = context.debug
     this.#response = context.response
     this.#execContext = context.execContext
-    this.#env = context.env
+    this.env = context.env
     this.name = 'Zaraz'
   }
 
@@ -50,11 +50,11 @@ export class Manager implements MCManager {
     return true
   }
   async get(key: string) {
-    return await get(this.#env.KV, this.component + '__' + key)
+    return await get(this.env.KV, this.component + '__' + key)
   }
   set(key: string, value: any) {
     return set(
-      this.#env.KV,
+      this.env.KV,
       this.#execContext,
       this.component + '__' + key,
       value
@@ -109,7 +109,7 @@ export class Manager implements MCManager {
 
   async useCache(key: string, callback: Function, expiry?: number) {
     return await useCache(
-      this.#env.KV,
+      this.env.KV,
       this.#execContext,
       this.component + '__' + key,
       callback,
@@ -119,7 +119,7 @@ export class Manager implements MCManager {
 
   invalidateCache(key: string) {
     return invalidateCache(
-      this.#env.KV,
+      this.env.KV,
       this.#execContext,
       this.component + '__' + key
     )

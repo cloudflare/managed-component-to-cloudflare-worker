@@ -1,10 +1,10 @@
 async function c(n, i) {
   i.ecommerce &&
-    n.addEventListener('ecommerce', (e) => {
+    n.addEventListener('ecommerce', e => {
       e.name === 'Order Completed' &&
         console.info('Ka-ching! \u{1F4B0}', JSON.stringify(e.payload))
     }),
-    n.createEventListener('mousemove', async (e) => {
+    n.createEventListener('mousemove', async e => {
       let { payload: t } = e
       e.client.execute("console.log('\u{1F401} \u{1FAA4} Mousemove:')"),
         console.info(
@@ -12,7 +12,7 @@ async function c(n, i) {
           JSON.stringify(t, null, 2)
         )
     }),
-    n.createEventListener('mousedown', async (e) => {
+    n.createEventListener('mousedown', async e => {
       let { client: t, payload: o } = e
       e.client.execute(
         "console.log('\u{1F401} \u2B07\uFE0F Mousedown payload:')"
@@ -21,7 +21,7 @@ async function c(n, i) {
       let [s] = o.mousedown
       t.set('lastClickX', s.clientX), t.set('lastClickY', s.clientY)
     }),
-    n.createEventListener('historyChange', async (e) => {
+    n.createEventListener('historyChange', async e => {
       e.client.execute(
         "console.log('\u{1F4E3} Ch Ch Ch Chaaanges to history detected!')"
       ),
@@ -30,14 +30,14 @@ async function c(n, i) {
           e.payload
         )
     }),
-    n.createEventListener('resize', async (e) => {
+    n.createEventListener('resize', async e => {
       e.client.execute("console.log('\u{1FA9F} New window size!')"),
         console.info(
           '\u{1FA9F} New window size!',
           JSON.stringify(e.payload, null, 2)
         )
     }),
-    n.createEventListener('scroll', async (e) => {
+    n.createEventListener('scroll', async e => {
       e.client.execute(
         "console.log('\u{1F6DE}\u{1F6DE}\u{1F6DE} They see me scrollin...they hatin...')"
       ),
@@ -59,7 +59,7 @@ async function c(n, i) {
         e.attachEvent('historyChange'),
         e.attachEvent('scroll')
     }),
-    n.addEventListener('event', async (e) => {
+    n.addEventListener('event', async e => {
       let { client: t, name: o } = e
       o === 'verifiedSignup' &&
         (console.info(
@@ -69,7 +69,7 @@ async function c(n, i) {
           'console.log("\u{1F9C0}\u{1F9C0}  verifiedSignup event! \u{1F9C0}\u{1F9C0}")'
         ))
     }),
-    n.addEventListener('pageview', async (e) => {
+    n.addEventListener('pageview', async e => {
       let { client: t } = e
       console.info(
         '\u{1F4C4} Pageview received!',

@@ -24,9 +24,15 @@ This method gives you more flexibility but requires you to be familiar with `wra
   you have to add a KV binding. There are two ways to do this:
 
 1. Run `npx wrangler kv:namespace create <KV_NAMESPACE>`, copy the `id` string, and add binding in [wrangler.toml](wrangler.toml) as follows:
-   `kv_namespaces = [
-  { binding = "KV", id = "<YOUR_KV_ID>" }
-]`
+   ```
+   kv_namespaces = [
+     { binding = "KV", id = "<YOUR_KV_ID>" }
+   ]
+   ```
 2. After publishing this Managed Component as worker, follow [these steps](https://developers.cloudflare.com/workers/configuration/environment-variables/#add-environment-variables-via-the-dashboard) to add a KV binding as environment variable with variable name `KV`
 
 - Run `npx wrangler publish`
+
+#### Environment Variables
+
+To use worker environment variables/secrets in your managed component, add variables [via wrangler](https://developers.cloudflare.com/workers/configuration/environment-variables/#add-environment-variables-via-wrangler) or [via dashboard](https://developers.cloudflare.com/workers/configuration/environment-variables/#add-environment-variables-via-the-dashboard) and use them in your component through the `manager` parameter: `manager.env.YOUR_ENV_VARIABLE`
