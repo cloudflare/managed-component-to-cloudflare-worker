@@ -4,13 +4,23 @@
 
 const fs = require('fs')
 const path = require('path')
-const crypto = require('crypto')
 const readline = require('readline')
 const { spawn } = require('child_process')
+const { createTempDirectorySync } = require('create-temp-directory')
+
 
 const SRC_DIR = path.join(__dirname, '..')
-const TMP_DIR = '/tmp/custom-mc-' + crypto.randomUUID()
+const TMP_DIR = createTempDirectorySync().path
 const WRANGLER_TOML_PATH = TMP_DIR + '/wrangler.toml'
+
+function spawnWrangler(...params){
+  const process = spawn(
+    'node',
+    [require.resolve("wrangler"), ...params],
+    { stdio: 'inherit' }
+  )
+  return process;
+}
 
 /**
  * @fileoverview Main CLI that is run via `publish-mc-to-zaraz` command
@@ -120,11 +130,7 @@ async function createNewKvNamespace() {
   )
   console.log(`Creating namespace "${kvName}"...`)
   let kvId = ''
-  const shell = spawn(
-    'npx',
-    ['wrangler', 'kv:namespace', 'create', kvName],
-    { stdio: 'pipe' }
-  )
+  const shell = spawnWrangler('kv:namespace', 'create', kvName)
   shell.stdout.setEncoding('utf8')
   for await (const data of shell.stdout) {
     const kvBindingStr = data.match(/{.*binding.*id.*}/g)?.[0]
@@ -150,11 +156,7 @@ async function createNewKvNamespace() {
 async function getExistingKvId() {
   console.log(`Looking for existing KVs...`)
   let kvList = ''
-  const shell = spawn(
-    'npx',
-    ['wrangler', 'kv:namespace', 'list'],
-    { stdio: 'pipe' }
-  )
+  const shell = spawnWrangler('kv:namespace', 'list')
   shell.stdout.setEncoding('utf8')
   for await (const data of shell.stdout) {
     kvList += data.toString()
@@ -269,11 +271,8 @@ WORKER_NAME: Name of the Cloudflare Worker to be created `)
 
   console.log('\nDeploying', workerName, 'as Cloudflare Zaraz Custom MC...')
 
-  const shell = spawn(
-    'npx',
-    ['wrangler', 'publish', '--config', TMP_DIR + '/wrangler.toml'],
-    { stdio: 'inherit' }
-  )
+  const shell = spawnWrangler('publish', '--config', TMP_DIR + '/wrangler.toml')
+
   shell.on('close', code => {
     if (code === 0) {
       console.log(
