@@ -8,18 +8,15 @@ const readline = require('readline')
 const { spawn } = require('child_process')
 const { createTempDirectorySync } = require('create-temp-directory')
 
-
 const SRC_DIR = path.join(__dirname, '..')
 const TMP_DIR = createTempDirectorySync().path
 const WRANGLER_TOML_PATH = TMP_DIR + '/wrangler.toml'
 
-function spawnWrangler(...params){
-  const process = spawn(
-    'node',
-    [require.resolve("wrangler"), ...params],
-    { stdio: 'inherit' }
-  )
-  return process;
+function spawnWrangler(...params) {
+  const process = spawn('node', [require.resolve('wrangler'), ...params], {
+    stdio: 'inherit',
+  })
+  return process
 }
 
 /**
@@ -91,8 +88,8 @@ async function isYesResponse(promptText) {
  * Repeat prompt until a valid response is provided
  */
 async function getValidPromptResponse(
-  promptText, 
-  isValid = function(resp) {
+  promptText,
+  isValid = function (resp) {
     return ['y', 'yes', 'n', 'no'].includes(resp)
   }
 ) {
@@ -108,8 +105,13 @@ async function getValidPromptResponse(
  * Check if component file uses any methods that require KV binding
  */
 function fileContainsKVMethods(path) {
-  const KVMethods = ['manager.get', 'manager.set', 'manager.useCache', 'manager.invalidateCache']
-  const data = fs.readFileSync(path);
+  const KVMethods = [
+    'manager.get',
+    'manager.set',
+    'manager.useCache',
+    'manager.invalidateCache',
+  ]
+  const data = fs.readFileSync(path)
   return KVMethods.some(str => data.includes(str))
 }
 
@@ -126,7 +128,9 @@ function getKvId(str) {
 async function createNewKvNamespace() {
   const kvName = await getValidPromptResponse(
     `\nPlease enter your new KV namespace name: `,
-    function(input) { return !!input }
+    function (input) {
+      return !!input
+    }
   )
   console.log(`Creating namespace "${kvName}"...`)
   let kvId = ''
@@ -140,13 +144,16 @@ async function createNewKvNamespace() {
     console.error(err.toString())
     exit(1)
   }
-  await new Promise(function(resolve, _) {
-    shell.on('close', async function(code) {
-      if (code === 0) console.log(`✅ Successfully created namespace with title "${kvName}", id: "${kvId}"`)
+  await new Promise(function (resolve, _) {
+    shell.on('close', async function (code) {
+      if (code === 0)
+        console.log(
+          `✅ Successfully created namespace with title "${kvName}", id: "${kvId}"`
+        )
       else kvId = await createNewKvNamespace()
       resolve()
-    });
-  });
+    })
+  })
   return kvId
 }
 
@@ -168,7 +175,9 @@ async function getExistingKvId() {
 
   return await getValidPromptResponse(
     `\nPlease provide the ID of the existing KV namespace that you want to use (see above): `,
-    function(input) { return kvList.includes(`"id": "${input}"`) }
+    function (input) {
+      return kvList.includes(`"id": "${input}"`)
+    }
   )
 }
 
@@ -176,8 +185,12 @@ async function getExistingKvId() {
  * Create new or use existing KV namespace to add a binding in wrangler.toml
  */
 async function setupKVBinding() {
-  console.log(`\nSince your component is using storage methods, you need to set up a KV namespace binding for those methods to work.`)
-  const needsNewKV = await isYesResponse(`Would you like to create a new KV namespace? (y/n): `)
+  console.log(
+    `\nSince your component is using storage methods, you need to set up a KV namespace binding for those methods to work.`
+  )
+  const needsNewKV = await isYesResponse(
+    `Would you like to create a new KV namespace? (y/n): `
+  )
   let kvId = ''
   if (needsNewKV) {
     kvId = await createNewKvNamespace()
@@ -271,12 +284,12 @@ WORKER_NAME: Name of the Cloudflare Worker to be created `)
 
   console.log('\nDeploying', workerName, 'as Cloudflare Zaraz Custom MC...')
 
-  const shell = spawnWrangler('publish', '--config', TMP_DIR + '/wrangler.toml')
+  const shell = spawnWrangler('deploy', '--config', TMP_DIR + '/wrangler.toml')
 
   shell.on('close', code => {
     if (code === 0) {
       console.log(
-        `\n🎉 Hooray!\nYour Managed Component was published as a Worker named "${workerName}" successfully!`
+        `\n🎉 Hooray!\nYour Managed Component was deployed as a Worker named "${workerName}" successfully!`
       )
       console.log(
         'You can configure it as tool using the Cloudflare Zaraz Dashboard at https://dash.cloudflare.com/?to=/:account/:zone/zaraz/tools-config/tools/catalog'
