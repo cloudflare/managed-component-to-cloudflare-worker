@@ -65,7 +65,8 @@ function replaceWorkerName(workerName) {
     if (err) {
       throw new Error(err)
     }
-    var result = data.replace(/custom-mc-cf-zaraz/g, workerName)
+    let tomlName = data.match(/name = ".*"/g)?.[0]
+    var result = data.replace(tomlName, `name = "${workerName}"`)
 
     fs.writeFile(WRANGLER_TOML_PATH, result, 'utf8', function (err) {
       if (err) {
@@ -216,14 +217,16 @@ async function setupKVBinding() {
 
 Publish a custom Managed Component as a Cloudflare Worker, for using with Cloudflare Zaraz.
 
-Usage: npx managed-component-to-cloudflare-worker COMPONENT_SCRIPT WORKER_NAME
+Usage: npx managed-component-to-cloudflare-worker COMPONENT_SCRIPT WORKER_NAME [WRANGLER_TOML_PATH]
 
 COMPONENT_SCRIPT: Path to your compiled Managed Component JavaScript file
-WORKER_NAME: Name of the Cloudflare Worker to be created `)
+WORKER_NAME: Name of the Cloudflare Worker to be created
+WRANGLER_TOML_PATH: (Optional) Path to your custom wrangler.toml file`)
     exit(1)
   }
   const componentPath = process.argv[2]
   let workerName = process.argv[3]
+  let customWranglerTomlPath = process.argv[4]
 
   require('ts-node').register({
     files: true,
@@ -261,6 +264,13 @@ WORKER_NAME: Name of the Cloudflare Worker to be created `)
   // copy component code to the temporary folder
   fs.copyFileSync(componentPath, TMP_DIR + '/src/component.js')
 
+  // copy custom wrangler.toml if provided
+  if (customWranglerTomlPath) {
+    process.stdout.write('Copying your custom wrangler.toml...')
+    fs.copyFileSync(customWranglerTomlPath, WRANGLER_TOML_PATH)
+    console.log(' ✅')
+  }
+
   if (!workerName.startsWith('custom-mc-')) {
     workerName = 'custom-mc-' + workerName
   }
@@ -271,15 +281,17 @@ WORKER_NAME: Name of the Cloudflare Worker to be created `)
   )
   if (!userInput) exit(0)
 
-  if (!fileContainsKVMethods(componentPath)) {
-    const componentNeedsKV = await isYesResponse(
-      `\nDoes your component use any of these methods: manager.get, manager.set, manager.useCache, manager.invalidateCache? (y/n): `
-    )
-    if (componentNeedsKV) {
+  if (!customWranglerTomlPath) {
+    if (!fileContainsKVMethods(componentPath)) {
+      const componentNeedsKV = await isYesResponse(
+        `\nDoes your component use any of these methods: manager.get, manager.set, manager.useCache, manager.invalidateCache? (y/n): `
+      )
+      if (componentNeedsKV) {
+        await setupKVBinding()
+      }
+    } else {
       await setupKVBinding()
     }
-  } else {
-    await setupKVBinding()
   }
 
   console.log('\nDeploying', workerName, 'as Cloudflare Zaraz Custom MC...')
