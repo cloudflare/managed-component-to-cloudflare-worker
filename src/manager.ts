@@ -23,6 +23,7 @@ export class Manager implements MCManager {
   #response: Context['response']
   #execContext: ExecutionContext
   #env: Env
+  ext: Record<string, any>
   name: string
 
   constructor(context: Context) {
@@ -37,6 +38,7 @@ export class Manager implements MCManager {
     this.#response = context.response
     this.#execContext = context.execContext
     this.#env = context.env
+    this.ext = { env: context.env }
     this.name = 'Zaraz'
   }
 
