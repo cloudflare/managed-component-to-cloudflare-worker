@@ -1,6 +1,6 @@
 {
   "name": "managed-component-to-cloudflare-worker",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "dependencies": {
     "create-temp-directory": "^2.4.0",
     "ts-node": "^10.9.2",
