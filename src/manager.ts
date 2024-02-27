@@ -39,7 +39,7 @@ export class Manager implements MCManager {
     this.#execContext = context.execContext
     this.#env = context.env
     this.ext = { env: context.env }
-    this.name = 'Zaraz'
+    this.name = 'Cloudflare Worker Custom MC Manager'
   }
 
   addEventListener(type: string, callback: MCEventListener) {
