@@ -87,6 +87,11 @@ export class Client implements MCClient {
     value: string | null | undefined,
     opts?: any
   ): boolean | undefined {
+    if (
+      !hasPermission(this.#component, 'access_client_kv', this.#permissions)
+    ) {
+      return
+    }
     const cookieKey = this.#componentPath + '__' + key
 
     this.#cookies[cookieKey] = value as string
@@ -96,6 +101,11 @@ export class Client implements MCClient {
   }
 
   get(key: string): string | undefined {
+    if (
+      !hasPermission(this.#component, 'access_client_kv', this.#permissions)
+    ) {
+      return
+    }
     const cookieKey = this.#componentPath + '__' + key
     return this.#cookies[cookieKey]
   }
