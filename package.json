@@ -4,7 +4,7 @@
   "dependencies": {
     "create-temp-directory": "^2.4.0",
     "ts-node": "^10.9.2",
-    "wrangler": "3.29.0"
+    "wrangler": "^3.78.12"
   },
   "engines": {
     "node": ">=17.0.0"
