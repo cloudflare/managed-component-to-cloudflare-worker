@@ -1,6 +1,7 @@
 import component from './component.js'
 import { handleRequest } from './handler'
 import { Env } from './models'
+// Any durable object bindings should be imported here
 
 export default {
   async fetch(
