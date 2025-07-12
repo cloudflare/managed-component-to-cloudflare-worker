@@ -248,20 +248,12 @@ function injectDurableObjectImports(indexPath, durableObjectClasses) {
   
   // Generate import statements and pattern for replacement
   const imports = `export { ${durableObjectClasses.join(', ')} } from './component.js';`;
-  const commentPattern = /\/\/ Any durable object bindings should be imported here/;
-  
-  if (commentPattern.test(indexContent)) {
-    indexContent = indexContent.replace(
-      commentPattern,
-      `// Any durable object bindings should be imported here\n${imports}`
-    );
-    
-    fs.writeFileSync(indexPath, indexContent);
-    console.log(` ✅`);
-  } else {
-    console.warn('\n⚠️  Could not find import comment in index.ts');
-    exit(1);
-  }
+
+  // Place imports at the top of the file
+  indexContent = imports + '\n' + indexContent;
+  fs.writeFileSync(indexPath, indexContent);
+  console.log(' ✅');
+  console.log(indexContent);
 }
 
 //------------------------------------------------------------------------------
