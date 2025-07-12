@@ -253,7 +253,6 @@ function injectDurableObjectImports(indexPath, durableObjectClasses) {
   indexContent = imports + '\n' + indexContent;
   fs.writeFileSync(indexPath, indexContent);
   console.log(' ✅');
-  console.log(indexContent);
 }
 
 //------------------------------------------------------------------------------
