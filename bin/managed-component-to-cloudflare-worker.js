@@ -13,7 +13,7 @@ const TMP_DIR = createTempDirectorySync().path
 const WRANGLER_TOML_PATH = TMP_DIR + '/wrangler.toml'
 
 function spawnWrangler(...params) {
-  const process = spawn('node', [require.resolve('wrangler'), ...params], {
+  const process = spawn('npx', ['--yes', 'wrangler', ...params], {
     stdio: 'inherit',
   })
   return process
@@ -204,6 +204,57 @@ async function setupKVBinding() {
   console.log(`✅ KV binding has been successfully added.`)
 }
 
+/**
+ * Parse wrangler.toml to find Durable Object class names
+ */
+function getDurableObjectClassNames(wranglerTomlPath) {
+  if (!fs.existsSync(wranglerTomlPath)) {
+    console.error(`Error: wrangler.toml not found at ${wranglerTomlPath}`)
+    exit(1);
+  }
+  
+  const tomlContent = fs.readFileSync(wranglerTomlPath, 'utf8');
+  const durableObjectClasses = [];
+  
+  // Look for [[durable_objects.bindings]] entries
+  const bindingMatches = tomlContent.matchAll(/\[\[durable_objects\.bindings\]\]([\s\S]*?)(?=\n\[|\n\n|$)/g);
+  
+  for (const bindingMatch of bindingMatches) {
+    const bindingSection = bindingMatch[1];
+    const classNameMatch = bindingSection.match(/class_name\s*=\s*"([^"]+)"/);
+    
+    if (classNameMatch) {
+      durableObjectClasses.push(classNameMatch[1]);
+    }
+  }
+  
+  return [...new Set(durableObjectClasses)];
+}
+
+/**
+ * Inject Durable Object imports into index.ts
+ */
+function injectDurableObjectImports(indexPath, durableObjectClasses) {
+  process.stdout.write(
+    `Injecting ${durableObjectClasses.length} Durable Object import${
+      durableObjectClasses.length === 1 ? '' : 's'
+    }...`
+  )
+  if (durableObjectClasses.length === 0) {
+    return;
+  }
+  
+  let indexContent = fs.readFileSync(indexPath, 'utf8');
+  
+  // Generate import statements and pattern for replacement
+  const imports = `export { ${durableObjectClasses.join(', ')} } from './component.js';`;
+
+  // Place imports at the top of the file
+  indexContent = imports + '\n' + indexContent;
+  fs.writeFileSync(indexPath, indexContent);
+  console.log(' ✅');
+}
+
 //------------------------------------------------------------------------------
 // Execution
 //------------------------------------------------------------------------------
@@ -271,6 +322,16 @@ WRANGLER_TOML_PATH: (Optional) Path to your custom wrangler.toml file`)
     console.log(' ✅')
   }
 
+  // Check for Durable Object bindings and inject imports
+  const durableObjectClasses = getDurableObjectClassNames(WRANGLER_TOML_PATH)
+  if (durableObjectClasses.length > 0) {
+    console.log(
+      `Found ${durableObjectClasses.length} Durable Object${durableObjectClasses.length === 1 ? '' : 's'}:`,
+      durableObjectClasses
+    )
+    injectDurableObjectImports(TMP_DIR + '/src/index.ts', durableObjectClasses)
+  }
+
   if (!workerName.startsWith('custom-mc-')) {
     workerName = 'custom-mc-' + workerName
   }
@@ -298,18 +359,24 @@ WRANGLER_TOML_PATH: (Optional) Path to your custom wrangler.toml file`)
 
   const shell = spawnWrangler('deploy', '--config', TMP_DIR + '/wrangler.toml')
 
-  shell.on('close', code => {
+  const handleProcessEnd = (code) => {
     if (code === 0) {
       console.log(
         `\n🎉 Hooray!\nYour Managed Component was deployed as a Worker named "${workerName}" successfully!`
       )
       console.log(
-        'You can configure it as tool using the Cloudflare Zaraz Dashboard at https://dash.cloudflare.com/?to=/:account/:zone/zaraz/tools-config/tools/catalog'
+        `Find Metrics, Deployments, Logs, and more at https://dash.cloudflare.com/?to=/:account/workers/services/view/${workerName}/production/metrics`
+      )
+      console.log(
+        'You can configure it as tool using the Cloudflare Tag Management Dashboard at https://dash.cloudflare.com/?to=/:account/tag-management/zaraz/:zone/tools-config/tools/catalog'
       )
     } else {
       exit(1)
     }
 
     exit(0)
-  })
+  }
+
+  shell.on('close', handleProcessEnd)
+  shell.on('exit', handleProcessEnd)
 })()
